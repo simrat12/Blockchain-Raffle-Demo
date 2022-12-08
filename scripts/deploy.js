@@ -9,7 +9,7 @@ const hre = require("hardhat");
 async function main() {
   const [deployer] = await ethers.getSigners();
 
-  const args = ["0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D", "5407", "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15", "600", "100000000", "800000", "10000000000000000000", "0x198244C498340dD151B5A0bB7f0d40893270a085"]
+  const args = ["0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D", "5407", "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15", "600", "100000000", "1200000", "10000000000000000000", "0x198244C498340dD151B5A0bB7f0d40893270a085"]
   const Raffle = await hre.ethers.getContractFactory("Raffle");
   const raffle = await Raffle.deploy(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
   await raffle.deployed();

@@ -250,10 +250,10 @@ contract Raffle is Ownable, VRFConsumerBaseV2, AutomationCompatible {
         s_recentWinner = recentWinner;
         s_players = new address payable[](0);
         s_lastTimeStamp = block.timestamp;
-        uint256 address_balance = ShittyToken.balanceOf(address(this)) - vestedTokenAllocation;
+        uint256 address_balance = ShittyToken.balanceOf(address(this)).sub(vestedTokenAllocation);
         if (winnerInfo[s_recentWinner].winOrNot == true) {
           uint256 amountBefore = winnerInfo[s_recentWinner].amount;
-          winnerInfo[s_recentWinner].amount = amountBefore + address_balance;
+          winnerInfo[s_recentWinner].amount = amountBefore.add(address_balance);
         } else {
           winnerDetails memory details = winnerDetails(true, address_balance, block.timestamp, 0);
           winnerInfo[s_recentWinner] = details;
@@ -272,15 +272,14 @@ contract Raffle is Ownable, VRFConsumerBaseV2, AutomationCompatible {
       require(winnerInfo[msg.sender].winOrNot == true, "You are not a winner, you are a loser!");
       require(winnerInfo[msg.sender].amount >= _amount, "This exceeds your allocated winnings!");
       uint256 duration = ChosenTimePeriod;
-      uint256 endDateVesting = winnerInfo[msg.sender].startSchedules + duration;
+      uint256 endDateVesting = winnerInfo[msg.sender].startSchedules.add(duration);
       if (block.timestamp > endDateVesting) {
         ShittyToken.transferFrom(address(this), msg.sender, _amount);  
         winnerInfo[msg.sender].amountWithdrawn += _amount; 
         vestedTokenAllocation -= _amount;
       } else {
-        uint256 rewardsPerSecond = winnerInfo[msg.sender].amount.div(duration);
-        uint256 vestingTimeElapsed = block.timestamp - winnerInfo[msg.sender].startSchedules;
-        uint256 allocatedRewards = vestingTimeElapsed.mul(rewardsPerSecond);
+        uint256 vestingTimeElapsed = block.timestamp.sub(winnerInfo[msg.sender].startSchedules);
+        uint256 allocatedRewards = (vestingTimeElapsed.mul(winnerInfo[msg.sender].amount)).div(duration);
         if (_amount <= allocatedRewards) {
           ShittyToken.transferFrom(address(this), msg.sender, _amount);
           winnerInfo[msg.sender].amountWithdrawn += _amount;  
@@ -297,10 +296,9 @@ contract Raffle is Ownable, VRFConsumerBaseV2, AutomationCompatible {
     function viewWinnings(address _account) public view returns (uint256) {  
       require(winnerInfo[_account].winOrNot == true, "You are not a winner, you are a loser!");
       uint256 duration = ChosenTimePeriod;
-      uint256 rewardsPerSecond = winnerInfo[_account].amount.div(duration);  // change to _account
-      uint256 vestingTimeElapsed = block.timestamp - winnerInfo[_account].startSchedules;
-      uint256 allocatedRewards = vestingTimeElapsed.mul(rewardsPerSecond);
-      uint256 remainingRewards = allocatedRewards - winnerInfo[_account].amountWithdrawn;
+      uint256 vestingTimeElapsed = block.timestamp.sub(winnerInfo[_account].startSchedules);
+      uint256 allocatedRewards = (vestingTimeElapsed.mul(winnerInfo[msg.sender].amount)).div(duration);
+      uint256 remainingRewards = allocatedRewards.sub(winnerInfo[_account].amountWithdrawn);
       return remainingRewards;
     }
 
